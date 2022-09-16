@@ -1,38 +1,56 @@
 import { format, formatDistanceToNow } from 'date-fns'
 import ptBR from 'date-fns/locale/pt-BR'
-import { useState } from 'react'
+import { ChangeEvent, FormEvent, InvalidEvent, useState } from 'react'
 
 import { Avatar } from './Avatar'
 import { Comments } from './Comments'
 import style from './Post.module.css'
 
-export function Post({author, puplishedAt, content}){
-  const [comments, setComments] = useState([])
+interface Author{
+  name:string;
+  role:string;
+  avatarUrl: string;
+}
+
+interface Content{
+  type: 'paragraph' | 'link';
+  content: string;
+}
+
+interface PostProps{
+  author: Author;
+  publishedAt: Date;
+  content: Content[];
+
+}
+
+export function Post({author, publishedAt, content}: PostProps){
+  const [comments, setComments] = useState([''])
 
   const [newCommentText, setNewCommentText] = useState('')
 
-  const publishedDateFormatted = format(puplishedAt, "d 'de' LLLL 'ás' HH:mm'h'",{
+  const publishedDateFormatted = format(publishedAt, "d 'de' LLLL 'ás' HH:mm'h'",{
     locale: ptBR,
   })
 
-  const publishedDateRelativeToNow = formatDistanceToNow(puplishedAt, {
+  const publishedDateRelativeToNow = formatDistanceToNow(publishedAt, {
     locale: ptBR,
     addSuffix: true
   })
 
-  function handleCreateNewComment(){
+  function handleCreateNewComment(event: FormEvent){
     event.preventDefault();
     setComments([...comments, newCommentText])
     setNewCommentText('')
   }
 
-  function handleNewCommentChange(){
+  function handleNewCommentChange(event: ChangeEvent<HTMLTextAreaElement>){
     event.target.setCustomValidity('')
     setNewCommentText(event.target.value)
 
   }
 
-  function deleteComment(commentToDelete){
+  function deleteComment(commentToDelete: string){
     const commentsWithoutDeletedOne = comments.filter(comment =>{
       return comment !== commentToDelete;
     })
@@ -42,7 +60,7 @@ export function Post({author, puplishedAt, content}){
 
   }
 
-  function handleNewCommentInvalid(){
+  function handleNewCommentInvalid(event: InvalidEvent<HTMLTextAreaElement>){
     event.target.setCustomValidity('Esse campo é obrigatório!')
   }
 
@@ -57,7 +75,7 @@ export function Post({author, puplishedAt, content}){
           </div>
         </div>
 
-        <time title={publishedDateFormatted} dateTime={puplishedAt.toISOString()}>
+        <time title={publishedDateFormatted} dateTime={publishedAt.toISOString()}>
           {publishedDateRelativeToNow}
         </time>
       </header>
@@ -65,7 +83,7 @@ export function Post({author, puplishedAt, content}){
       <div className={style.content}>
         {content.map(line =>{
           if(line.type === 'paragraph'){
-            return <p keu={line.content}>{line.content}</p>;
+            return <p key={line.content}>{line.content}</p>;
           } else if (line.type === 'link'){
             return <p key={line.content}><a href='#'>{line.content}</a></p>
 
